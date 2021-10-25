@@ -14,19 +14,13 @@ import java.util.Random;
 import java.util.stream.Collectors;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
-import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 
 /**
  *
  * @author User
  */
 public class GameFrame extends javax.swing.JFrame {
-    ArrayList<Question> questions = new ArrayList<Question>();
+    DbAdapter dbAdapter = new DbAdapter("jdbc:sqlite:db\\millionaire.db");
     private Random  rnd = new Random();
     int Level = 0;
     Question currentQuestion;
@@ -36,8 +30,6 @@ public class GameFrame extends javax.swing.JFrame {
      */
     public GameFrame() {
         initComponents();
-        //ReadFile();
-        ReadFromDB();
         startGame();
     }
 
@@ -267,46 +259,6 @@ public class GameFrame extends javax.swing.JFrame {
             }
         });
     }
-    
-    private void ReadFile(){
-        try{
-            FileInputStream fstream = new FileInputStream("Вопросы.txt");
-            BufferedReader br = new BufferedReader(new InputStreamReader(fstream, "UTF-8"));
-            String strLine;
-
-            while ((strLine = br.readLine()) != null) {
-                String[] s = strLine.split("\t");
-                questions.add(new Question(s));
-            }
-        } catch (IOException e) {
-            System.out.println("Ошибка");
-        }
-    }
-    
-    private void ReadFromDB(){
-        try{
-            Class.forName("org.sqlite.JDBC");
-            Connection conn = DriverManager.getConnection("jdbc:sqlite:db\\millionaire.db");
-
-            Statement statmt = conn.createStatement();
-            String query = "select question_text from question";
-
-            ResultSet resSet = statmt.executeQuery(query);
-            String strLine;
-
-            while (resSet.next()) {
-                strLine = resSet.getString(1);
-                questions.add(new Question(strLine.split("\t")));
-            }
-
-            resSet.close();
-            conn.close();
-
-        } catch (Exception ex) {
-            System.out.println(ex.toString());
-        }
-
-    }
 
     private void ShowQuestion(Question q){
         lblQuestionText.setText(q.Text);
@@ -314,12 +266,6 @@ public class GameFrame extends javax.swing.JFrame {
         btnAnswer2.setText(q.Answers[1]);
         btnAnswer3.setText(q.Answers[2]);
         btnAnswer4.setText(q.Answers[3]);
-    }
-    
-    private Question GetQuestion(int level){
-        List<Question> list = 
-                questions.stream().filter(q->q.Level==level).collect(Collectors.toList());
-        return list.get(rnd.nextInt(list.size()));
     }
 
     private void NextStep(){
@@ -330,7 +276,7 @@ public class GameFrame extends javax.swing.JFrame {
             btn.setEnabled(true);
         
         Level++;
-        currentQuestion = GetQuestion(Level);
+        currentQuestion = this.dbAdapter.GetQuestionByLevel(Level);
         ShowQuestion(currentQuestion);
         lstLevel.setSelectedIndex(lstLevel.getModel().getSize()-Level);
     }
