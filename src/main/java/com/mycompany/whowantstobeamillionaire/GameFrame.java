@@ -15,6 +15,11 @@ import java.util.stream.Collectors;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 /**
  *
@@ -31,7 +36,8 @@ public class GameFrame extends javax.swing.JFrame {
      */
     public GameFrame() {
         initComponents();
-        ReadFile();
+        //ReadFile();
+        ReadFromDB();
         startGame();
     }
 
@@ -275,6 +281,31 @@ public class GameFrame extends javax.swing.JFrame {
         } catch (IOException e) {
             System.out.println("Ошибка");
         }
+    }
+    
+    private void ReadFromDB(){
+        try{
+            Class.forName("org.sqlite.JDBC");
+            Connection conn = DriverManager.getConnection("jdbc:sqlite:db\\millionaire.db");
+
+            Statement statmt = conn.createStatement();
+            String query = "select question_text from question";
+
+            ResultSet resSet = statmt.executeQuery(query);
+            String strLine;
+
+            while (resSet.next()) {
+                strLine = resSet.getString(1);
+                questions.add(new Question(strLine.split("\t")));
+            }
+
+            resSet.close();
+            conn.close();
+
+        } catch (Exception ex) {
+            System.out.println(ex.toString());
+        }
+
     }
 
     private void ShowQuestion(Question q){
