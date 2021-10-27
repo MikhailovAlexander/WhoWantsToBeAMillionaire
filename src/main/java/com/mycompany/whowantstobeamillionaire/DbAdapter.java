@@ -46,7 +46,6 @@ public class DbAdapter {
             statement.setInt(1, level);
 
             resSet = statement.executeQuery();
-            String strLine;
 
             if (resSet.next()) {
                 question = new Question(resSet.getString(1),
@@ -54,8 +53,71 @@ public class DbAdapter {
                         resSet.getString(4), resSet.getString(5),
                         resSet.getString(6), resSet.getInt(7));
             }
+        } catch (Exception ex) {
+            System.out.println(ex.toString());
+        } finally {
+            try { resSet.close(); } catch (Exception e) { /* Ignored */ }
+            try { statement.close(); } catch (Exception e) { /* Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Ignored */ }
+        }
+        return question;
+    }
+    
+    public void SaveWinner(String name, int amount){
+        Connection conn = null;
+        PreparedStatement statement = null;
+        ResultSet resSet = null;
+        String query;
+        int gamer_id = GetGamerId(name);
+        try{
+            Class.forName(DbAdapter.driver);
+            conn = DriverManager.getConnection(this.dbUrl);
 
+            query = "insert into winner(winner_amount, winner_dt, gamer_id) values(?,current_timestamp,?)";
+            statement = conn.prepareStatement(query);
+            statement.setInt(1, amount);
+            statement.setInt(2, gamer_id);
+            statement.executeUpdate();
+        } catch (Exception ex) {
+            System.out.println(ex.toString());
+        } finally {
+            try { resSet.close(); } catch (Exception e) { /* Ignored */ }
+            try { statement.close(); } catch (Exception e) { /* Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Ignored */ }
+        }
+    }
+    
+    private int GetGamerId(String name){
+        Connection conn = null;
+        PreparedStatement statement = null;
+        ResultSet resSet = null;
+        String query;
+        int gamer_id = -1;
+        try{
+            Class.forName(DbAdapter.driver);
+            conn = DriverManager.getConnection(this.dbUrl);
+
+            query = "select gamer_id from gamer where gamer_name = ?";
+            statement = conn.prepareStatement(query);
+            statement.setString(1, name);
+
+            resSet = statement.executeQuery();
+            if (resSet.next()) {
+                gamer_id = resSet.getInt(1);
+                resSet.close();
+                statement.close();
+            }
+            else{
+                query = "insert into gamer(gamer_name) values(?) returning gamer_id";
+                statement = conn.prepareStatement(query);
+                statement.setString(1, name);
+                resSet = statement.executeQuery();
+                if (resSet.next()) {
+                    gamer_id = resSet.getInt(1);
+                }
+            }
             resSet.close();
+            statement.close();
             conn.close();
         } catch (Exception ex) {
             System.out.println(ex.toString());
@@ -63,7 +125,7 @@ public class DbAdapter {
             try { resSet.close(); } catch (Exception e) { /* Ignored */ }
             try { statement.close(); } catch (Exception e) { /* Ignored */ }
             try { conn.close(); } catch (Exception e) { /* Ignored */ }
-}
-        return question;
+        }
+        return gamer_id;
     }
 }

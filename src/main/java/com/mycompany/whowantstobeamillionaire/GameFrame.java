@@ -20,17 +20,28 @@ import javax.swing.JOptionPane;
  * @author User
  */
 public class GameFrame extends javax.swing.JFrame {
+    private static int[] winAmounts = new int[] {0,0,500,1000,2000,3000,5000,10000,15000,25000,50000,100000,200000,400000,800000,1500000,3000000};
     DbAdapter dbAdapter = new DbAdapter("jdbc:sqlite:db\\millionaire.db");
-    private Random  rnd = new Random();
+    private Random rnd = new Random();
     int Level = 0;
+    int cheetCount;
+    Boolean useRightToMistake;
     Question currentQuestion;
+    JButton[] answerBtns;
+    JButton[] cheetBtns;
 
     /**
      * Creates new form GameFrame
      */
     public GameFrame() {
         initComponents();
+        InitializeBtns();
         startGame();
+    }
+    private void InitializeBtns(){
+        answerBtns = new JButton[] { btnAnswer1, btnAnswer2, btnAnswer3, btnAnswer4 };
+        cheetBtns = new JButton[] { bntFiftyFifty, btnPeopleHelp, 
+            btnChangeQuestion, btnRightToMistake };
     }
 
     /**
@@ -51,9 +62,11 @@ public class GameFrame extends javax.swing.JFrame {
         btnAnswer2 = new javax.swing.JButton();
         btnAnswer4 = new javax.swing.JButton();
         bntFiftyFifty = new javax.swing.JButton();
-        jButton8 = new javax.swing.JButton();
+        btnPeopleHelp = new javax.swing.JButton();
         jButton9 = new javax.swing.JButton();
-        jButton10 = new javax.swing.JButton();
+        btnGetMoney = new javax.swing.JButton();
+        btnChangeQuestion = new javax.swing.JButton();
+        btnRightToMistake = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -117,14 +130,40 @@ public class GameFrame extends javax.swing.JFrame {
             }
         });
 
-        jButton8.setText("Помощь зала");
-        jButton8.setName("btnHallHelp"); // NOI18N
+        btnPeopleHelp.setText("Помощь зала");
+        btnPeopleHelp.setName("btnHallHelp"); // NOI18N
+        btnPeopleHelp.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPeopleHelpActionPerformed(evt);
+            }
+        });
 
         jButton9.setText("Звонок друга");
         jButton9.setName("btnCallFriend"); // NOI18N
 
-        jButton10.setText("Забрать деньги");
-        jButton10.setName("btnGetMonney"); // NOI18N
+        btnGetMoney.setText("Забрать деньги");
+        btnGetMoney.setName("btnGetMonney"); // NOI18N
+        btnGetMoney.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnGetMoneyActionPerformed(evt);
+            }
+        });
+
+        btnChangeQuestion.setText("Замена вопроса");
+        btnChangeQuestion.setName("btnChangeQuestion"); // NOI18N
+        btnChangeQuestion.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnChangeQuestionActionPerformed(evt);
+            }
+        });
+
+        btnRightToMistake.setText("Право на ошибку");
+        btnRightToMistake.setName("btnRightToMistake"); // NOI18N
+        btnRightToMistake.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRightToMistakeActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -135,45 +174,50 @@ public class GameFrame extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(lblQuestionText, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(btnAnswer1, javax.swing.GroupLayout.PREFERRED_SIZE, 330, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(btnAnswer3, javax.swing.GroupLayout.PREFERRED_SIZE, 330, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(btnAnswer2, javax.swing.GroupLayout.PREFERRED_SIZE, 330, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(btnAnswer4, javax.swing.GroupLayout.PREFERRED_SIZE, 330, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(jButton10, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(jButton9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(jButton8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(bntFiftyFifty, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 445, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addComponent(btnAnswer1, javax.swing.GroupLayout.PREFERRED_SIZE, 330, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnAnswer3, javax.swing.GroupLayout.PREFERRED_SIZE, 330, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(btnAnswer2, javax.swing.GroupLayout.PREFERRED_SIZE, 330, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnAnswer4, javax.swing.GroupLayout.PREFERRED_SIZE, 330, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(btnGetMoney, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jButton9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnPeopleHelp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(bntFiftyFifty, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnChangeQuestion, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnRightToMistake, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 445, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                        .addComponent(jScrollPane1)
-                        .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(bntFiftyFifty)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton8)
+                        .addComponent(btnPeopleHelp)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton9)
+                        .addGap(7, 7, 7)
+                        .addComponent(btnChangeQuestion)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton10)))
-                .addGap(7, 7, 7)
+                        .addComponent(btnRightToMistake)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnGetMoney)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel1)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 272, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addComponent(lblQuestionText)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -183,7 +227,7 @@ public class GameFrame extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnAnswer2)
                     .addComponent(btnAnswer4))
-                .addGap(0, 10, Short.MAX_VALUE))
+                .addGap(0, 0, Short.MAX_VALUE))
         );
 
         pack();
@@ -206,25 +250,90 @@ public class GameFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnAnswer4ActionPerformed
 
     private void bntFiftyFiftyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bntFiftyFiftyActionPerformed
-        JButton[] btns = new JButton[]{btnAnswer1, btnAnswer2, 
-            btnAnswer3, btnAnswer4};
-        
+        bntFiftyFifty.setEnabled(false);
         int count = 0;
-        while (count<2)
-        {
+        while (count<2){
             int n = rnd.nextInt(4);
-            String ac = btns[n].getActionCommand();
-            
-            if (!ac.equals(currentQuestion.RightAnswer)
-                    && btns[n].isEnabled())
-            {
-                btns[n].setEnabled(false);
+            String ac = answerBtns[n].getActionCommand();
+            if (!currentQuestion.CheckAnswer(ac) && answerBtns[n].isEnabled()){
+                answerBtns[n].setEnabled(false);
                 count++;
             }
         }
-
+        CheckCheetCount();
     }//GEN-LAST:event_bntFiftyFiftyActionPerformed
 
+    private void btnPeopleHelpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPeopleHelpActionPerformed
+        btnPeopleHelp.setEnabled(false);
+        List<Integer> activAnswers = new ArrayList<Integer>();
+        for(JButton btn: answerBtns){
+            if (btn.isEnabled()){
+                activAnswers.add(Integer.valueOf(btn.getActionCommand()) - 1);
+            }
+        }
+        Integer[] voteResult = GetVoteResult(activAnswers);
+        for(JButton btn: answerBtns){
+            Integer i = Integer.valueOf(btn.getActionCommand()) - 1;
+            if(btn.isEnabled()){
+                btn.setText(String.format("%s: %d %%",btn.getText(),voteResult[i]));
+            }
+        }
+        CheckCheetCount();
+    }//GEN-LAST:event_btnPeopleHelpActionPerformed
+
+    private void btnChangeQuestionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnChangeQuestionActionPerformed
+        Level--;
+        NextStep();
+        btnChangeQuestion.setEnabled(false);
+        CheckCheetCount();
+    }//GEN-LAST:event_btnChangeQuestionActionPerformed
+
+    private void btnRightToMistakeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRightToMistakeActionPerformed
+        useRightToMistake = true;
+        btnRightToMistake.setEnabled(false);
+        CheckCheetCount();
+    }//GEN-LAST:event_btnRightToMistakeActionPerformed
+
+    private void btnGetMoneyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGetMoneyActionPerformed
+        if (Level == 1){
+            JOptionPane.showMessageDialog(this, "Вы не ответили ни на один вопрос!");
+        }
+        else{
+            JOptionPane.showMessageDialog(this, String.format(
+                    "Поздравляем! Ваш выигрыш составил %d рублей!",
+                    winAmounts[Level]));
+            dbAdapter.SaveWinner("test1", winAmounts[Level]);
+            startGame();
+        }
+    }//GEN-LAST:event_btnGetMoneyActionPerformed
+
+    private void CheckCheetCount(){
+        if(++cheetCount == 4) setEnableCheetBtns(false);
+    }
+    
+    private Integer[] GetVoteResult(List<Integer> activAnswers){
+        Integer[] voteResult = new Integer[4];
+        Integer rigthAnswerVote = GetRigthAnswerVote(activAnswers.size());
+        Integer residue = 100 - rigthAnswerVote;
+        Integer basehAnswerVote = residue/(activAnswers.size() - 1);
+        for(int i = 0;i < 4; i++){
+            if(i == currentQuestion.RightAnswerIndex()){
+                voteResult[i] = rigthAnswerVote;
+            }else if(activAnswers.contains(i)){
+                int addition = rnd.nextInt(Level) - Level/2;
+                int value = basehAnswerVote + addition < residue ? 
+                        basehAnswerVote + addition : residue;
+                residue -= value;
+                voteResult[i] = value;
+            }
+        }
+        return voteResult;
+    }
+    
+    private Integer GetRigthAnswerVote(int answerCount){
+        double power = (double)answerCount/-9;
+        return (int)(100 * Math.pow(Level, power));
+    }
     /**
      * @param args the command line arguments
      */
@@ -262,19 +371,13 @@ public class GameFrame extends javax.swing.JFrame {
 
     private void ShowQuestion(Question q){
         lblQuestionText.setText(q.Text);
-        btnAnswer1.setText(q.Answers[0]);
-        btnAnswer2.setText(q.Answers[1]);
-        btnAnswer3.setText(q.Answers[2]);
-        btnAnswer4.setText(q.Answers[3]);
+        for(int i = 0;i < 4; i++){
+            answerBtns[i].setText(q.Answers[i]);
+        }
     }
 
     private void NextStep(){
-        JButton[] btns = new JButton[]{btnAnswer1, btnAnswer2, 
-            btnAnswer3, btnAnswer4};
-        
-        for(JButton btn: btns)
-            btn.setEnabled(true);
-        
+        for(JButton btn: answerBtns) btn.setEnabled(true);
         Level++;
         currentQuestion = this.dbAdapter.GetQuestionByLevel(Level);
         ShowQuestion(currentQuestion);
@@ -283,17 +386,38 @@ public class GameFrame extends javax.swing.JFrame {
     
     private void startGame(){
         Level = 0;
+        cheetCount = 0;
+        useRightToMistake = false;
         NextStep();
+        setEnableCheetBtns(true);
+    }
+
+    private void setEnableCheetBtns(Boolean value){
+        for(JButton btn: cheetBtns)
+            btn.setEnabled(value);
     }
 
     private void btnAnswerActionPerformed(java.awt.event.ActionEvent evt) {                                           
-        if (currentQuestion.RightAnswer.equals(evt.getActionCommand()))
-            NextStep();            
-        else
-        {
+        JButton btn = (JButton)evt.getSource();
+        if (currentQuestion.CheckAnswer(evt.getActionCommand())){
+            useRightToMistake = false;
+            if (Level < 15) NextStep();
+            else finishGame();
+        }
+        else if(useRightToMistake){
+            useRightToMistake = false;
+            btn.setEnabled(false);
+            JOptionPane.showMessageDialog(this, "Неверный ответ! Попробуйте снова");
+        }
+        else{
             JOptionPane.showMessageDialog(this, "Неверный ответ!");
             startGame();
         }
+    }
+    
+    private void finishGame(){
+        JOptionPane.showMessageDialog(this, "Ваш выигрыш составил: 3 000 000");
+        startGame();
     }
 
 
@@ -303,8 +427,10 @@ public class GameFrame extends javax.swing.JFrame {
     private javax.swing.JButton btnAnswer2;
     private javax.swing.JButton btnAnswer3;
     private javax.swing.JButton btnAnswer4;
-    private javax.swing.JButton jButton10;
-    private javax.swing.JButton jButton8;
+    private javax.swing.JButton btnChangeQuestion;
+    private javax.swing.JButton btnGetMoney;
+    private javax.swing.JButton btnPeopleHelp;
+    private javax.swing.JButton btnRightToMistake;
     private javax.swing.JButton jButton9;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;

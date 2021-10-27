@@ -30,4 +30,11 @@ public class Question {
     public Question(){
         Text = "undefined";
     }
+    public Boolean CheckAnswer(String answer){
+        return this.RightAnswer.equals(answer);
+    }
+    
+    public Integer RightAnswerIndex(){
+        return Integer.parseInt(RightAnswer) - 1;
+    }
 }
