@@ -9,6 +9,8 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -22,6 +24,7 @@ import javax.swing.JOptionPane;
 public class GameFrame extends javax.swing.JFrame {
     private static int[] winAmounts = new int[] {0,0,500,1000,2000,3000,5000,10000,15000,25000,50000,100000,200000,400000,800000,1500000,3000000};
     DbAdapter dbAdapter = new DbAdapter("jdbc:sqlite:db\\millionaire.db");
+    SoundPlayer player;
     private Random rnd = new Random();
     int Level = 0;
     int cheetCount;
@@ -420,7 +423,10 @@ public class GameFrame extends javax.swing.JFrame {
         lstLevel.setSelectedIndex(lstLevel.getModel().getSize()-Level);
     }
     
-    private void startGame(){
+    private void startGame() {
+        if(player != null && player.isAlive()) player.finish();
+        player = new SoundPlayer("file:.\\sounds\\500_question.wav");
+        player.start();
         Level = 0;
         cheetCount = 0;
         useRightToMistake = false;
@@ -446,6 +452,10 @@ public class GameFrame extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Неверный ответ! Попробуйте снова");
         }
         else{
+            //player.finish();
+            if(player != null && player.isAlive()) player.finish();
+            player = new SoundPlayer("file:.\\sounds\\lose.wav");
+            player.start();
             JOptionPane.showMessageDialog(this, "Неверный ответ!");
             startGame();
         }
