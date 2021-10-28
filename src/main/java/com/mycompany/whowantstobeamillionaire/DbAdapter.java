@@ -143,7 +143,7 @@ public class DbAdapter {
             statement = conn.createStatement();
             resSet = statement.executeQuery(query);
 
-            if (resSet.next()) {
+            while (resSet.next()) {
                 result.add(new Object[]{
                     resSet.getString(1),
                     resSet.getInt(2),
@@ -156,6 +156,8 @@ public class DbAdapter {
             try { statement.close(); } catch (Exception e) { /* Ignored */ }
             try { conn.close(); } catch (Exception e) { /* Ignored */ }
         }
-        return (Object[][])result.toArray();
+        Object[][] arr = new Object[result.size()][];
+        arr = result.toArray(arr);
+        return arr;
     }
 }
