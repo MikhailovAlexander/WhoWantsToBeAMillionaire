@@ -9,6 +9,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 /**
  *
  * @author User
@@ -127,5 +129,33 @@ public class DbAdapter {
             try { conn.close(); } catch (Exception e) { /* Ignored */ }
         }
         return gamer_id;
+        
+    }public Object[][] GetWinnersList(){
+        List<Object[]> result = new ArrayList<Object[]>();
+        Connection conn = null;
+        Statement statement = null;
+        ResultSet resSet = null;
+        try{
+            Class.forName(DbAdapter.driver);
+            conn = DriverManager.getConnection(this.dbUrl);
+
+            String query = "select * from v_winners_list";
+            statement = conn.createStatement();
+            resSet = statement.executeQuery(query);
+
+            if (resSet.next()) {
+                result.add(new Object[]{
+                    resSet.getString(1),
+                    resSet.getInt(2),
+                    resSet.getString(3)});
+            }
+        } catch (Exception ex) {
+            System.out.println(ex.toString());
+        } finally {
+            try { resSet.close(); } catch (Exception e) { /* Ignored */ }
+            try { statement.close(); } catch (Exception e) { /* Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Ignored */ }
+        }
+        return (Object[][])result.toArray();
     }
 }

@@ -53,6 +53,7 @@ public class GameFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         lstLevel = new javax.swing.JList<>();
@@ -67,6 +68,19 @@ public class GameFrame extends javax.swing.JFrame {
         btnGetMoney = new javax.swing.JButton();
         btnChangeQuestion = new javax.swing.JButton();
         btnRightToMistake = new javax.swing.JButton();
+        jLabel2 = new javax.swing.JLabel();
+        tfName = new javax.swing.JTextField();
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 100, Short.MAX_VALUE)
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 100, Short.MAX_VALUE)
+        );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -165,6 +179,8 @@ public class GameFrame extends javax.swing.JFrame {
             }
         });
 
+        jLabel2.setText("Введите свое имя");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -188,7 +204,9 @@ public class GameFrame extends javax.swing.JFrame {
                             .addComponent(btnPeopleHelp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(bntFiftyFifty, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(btnChangeQuestion, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnRightToMistake, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(btnRightToMistake, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(tfName))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 445, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
@@ -212,6 +230,10 @@ public class GameFrame extends javax.swing.JFrame {
                         .addComponent(btnRightToMistake)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnGetMoney)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tfName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -295,16 +317,9 @@ public class GameFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnRightToMistakeActionPerformed
 
     private void btnGetMoneyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGetMoneyActionPerformed
-        if (Level == 1){
+        if (Level < 2)
             JOptionPane.showMessageDialog(this, "Вы не ответили ни на один вопрос!");
-        }
-        else{
-            JOptionPane.showMessageDialog(this, String.format(
-                    "Поздравляем! Ваш выигрыш составил %d рублей!",
-                    winAmounts[Level]));
-            dbAdapter.SaveWinner("test1", winAmounts[Level]);
-            startGame();
-        }
+        else finishGame();
     }//GEN-LAST:event_btnGetMoneyActionPerformed
 
     private void CheckCheetCount(){
@@ -416,8 +431,27 @@ public class GameFrame extends javax.swing.JFrame {
     }
     
     private void finishGame(){
-        JOptionPane.showMessageDialog(this, "Ваш выигрыш составил: 3 000 000");
+        String name = tfName.getText();
+        if (IsEmptyString(name)){
+            name = JOptionPane.showInputDialog(this,"Для записи в кинигу рекордов введите Ваше имя");
+            tfName.setText(name);
+        }
+        if (IsEmptyString(name)){
+            JOptionPane.showMessageDialog(this, String.format(
+                    "Поздравляем! Ваш выигрыш составил %d рублей! Но, к сожалению, рекорд не будет записан",
+                    winAmounts[Level]));
+        }
+        else{
+            dbAdapter.SaveWinner(name, winAmounts[Level]);
+            JOptionPane.showMessageDialog(this, String.format(
+                    "Поздравляем %s! Ваш выигрыш составил %d рублей!", name,
+                    winAmounts[Level]));
+        }
         startGame();
+    }
+    
+    private boolean IsEmptyString(String string){
+        return string == null || string.trim().isEmpty();
     }
 
 
@@ -433,8 +467,11 @@ public class GameFrame extends javax.swing.JFrame {
     private javax.swing.JButton btnRightToMistake;
     private javax.swing.JButton jButton9;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblQuestionText;
     private javax.swing.JList<String> lstLevel;
+    private javax.swing.JTextField tfName;
     // End of variables declaration//GEN-END:variables
 }
