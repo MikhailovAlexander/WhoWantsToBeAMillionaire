@@ -5,15 +5,8 @@
 package com.mycompany.whowantstobeamillionaire;
 
 import java.util.List;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.stream.Collectors;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 
@@ -23,7 +16,7 @@ import javax.swing.JOptionPane;
  */
 public class GameFrame extends javax.swing.JFrame {
     private static int[] winAmounts = new int[] {0,0,500,1000,2000,3000,5000,10000,15000,25000,50000,100000,200000,400000,800000,1500000,3000000};
-    DbAdapter dbAdapter = new DbAdapter("jdbc:sqlite:db\\millionaire.db");
+    DbAdapter dbAdapter;
     SoundPlayer player;
     private Random rnd = new Random();
     int Level = 0;
@@ -37,6 +30,8 @@ public class GameFrame extends javax.swing.JFrame {
      * Creates new form GameFrame
      */
     public GameFrame() {
+        dbAdapter = new DbAdapter("jdbc:sqlite:db\\millionaire.db");
+        player = new SoundPlayer();
         initComponents();
         InitializeBtns();
         startGame();
@@ -424,9 +419,7 @@ public class GameFrame extends javax.swing.JFrame {
     }
     
     private void startGame() {
-        if(player != null && player.isAlive()) player.finish();
-        player = new SoundPlayer("file:.\\sounds\\500_question.wav");
-        player.start();
+        player.play("file:.\\sounds\\500_question.wav");
         Level = 0;
         cheetCount = 0;
         useRightToMistake = false;
@@ -452,16 +445,14 @@ public class GameFrame extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Неверный ответ! Попробуйте снова");
         }
         else{
-            //player.finish();
-            if(player != null && player.isAlive()) player.finish();
-            player = new SoundPlayer("file:.\\sounds\\lose.wav");
-            player.start();
+            player.play("file:.\\sounds\\lose.wav");
             JOptionPane.showMessageDialog(this, "Неверный ответ!");
             startGame();
         }
     }
     
     private void finishGame(){
+        player.play("file:.\\sounds\\win.wav");
         String name = tfName.getText();
         if (IsEmptyString(name)){
             name = JOptionPane.showInputDialog(this,"Для записи в кинигу рекордов введите Ваше имя");

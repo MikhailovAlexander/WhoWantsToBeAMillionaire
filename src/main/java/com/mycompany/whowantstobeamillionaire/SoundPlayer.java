@@ -11,37 +11,30 @@ import javax.sound.sampled.Clip;
  *
  * @author User
  */
-public class SoundPlayer
-{
-    private String audioUrl;
+public class SoundPlayer{
+    private AudioInputStream inputStream;
+    private URL file;
     private Clip clip;
     
-    public SoundPlayer(String audioUrl) {
-        super();
-        this.audioUrl = audioUrl;
+    public SoundPlayer() {
         try {
             this.clip = AudioSystem.getClip();
-            URL file = new URL(this.audioUrl);
-            AudioInputStream inputStream = AudioSystem.getAudioInputStream(file);
-            clip.open(inputStream);
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
     }
     
-    public boolean isAlive(){
-        return clip != null && clip.isRunning();
-    }
-    
-    public void start() {
-        if(clip != null) {
-            clip.start(); 
-        }
-    }
-    
-    public void finish() {
-        if(clip != null) {
-            clip.stop();
+    public void play(String audioUrl) {
+        if(clip != null && clip.isRunning()) clip.stop();
+        if(clip != null && clip.isOpen()) clip.close();
+        try {
+            if(inputStream != null) inputStream.close();
+            file = new URL(audioUrl);
+            inputStream = AudioSystem.getAudioInputStream(file);
+            clip.open(inputStream);
+            clip.start();
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
         }
     }
 }
