@@ -39,7 +39,7 @@ public class GameFrame extends javax.swing.JFrame {
     private void InitializeBtns(){
         answerBtns = new JButton[] { btnAnswer1, btnAnswer2, btnAnswer3, btnAnswer4 };
         cheetBtns = new JButton[] { bntFiftyFifty, btnPeopleHelp, 
-            btnChangeQuestion, btnRightToMistake };
+            btnChangeQuestion, btnRightToMistake, btnCallFriend, btnAddFriend };
     }
 
     /**
@@ -62,7 +62,7 @@ public class GameFrame extends javax.swing.JFrame {
         btnAnswer4 = new javax.swing.JButton();
         bntFiftyFifty = new javax.swing.JButton();
         btnPeopleHelp = new javax.swing.JButton();
-        jButton9 = new javax.swing.JButton();
+        btnCallFriend = new javax.swing.JButton();
         btnGetMoney = new javax.swing.JButton();
         btnChangeQuestion = new javax.swing.JButton();
         btnRightToMistake = new javax.swing.JButton();
@@ -152,8 +152,13 @@ public class GameFrame extends javax.swing.JFrame {
             }
         });
 
-        jButton9.setText("Звонок друга");
-        jButton9.setName("btnCallFriend"); // NOI18N
+        btnCallFriend.setText("Звонок друга");
+        btnCallFriend.setName("btnCallFriend"); // NOI18N
+        btnCallFriend.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCallFriendActionPerformed(evt);
+            }
+        });
 
         btnGetMoney.setText("Забрать деньги");
         btnGetMoney.setName("btnGetMonney"); // NOI18N
@@ -210,7 +215,7 @@ public class GameFrame extends javax.swing.JFrame {
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                     .addComponent(btnGetMoney, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(jButton9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(btnCallFriend, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(btnPeopleHelp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(bntFiftyFifty, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(btnChangeQuestion, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -248,7 +253,7 @@ public class GameFrame extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnPeopleHelp)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton9)
+                        .addComponent(btnCallFriend)
                         .addGap(7, 7, 7)
                         .addComponent(btnChangeQuestion)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -313,12 +318,7 @@ public class GameFrame extends javax.swing.JFrame {
 
     private void btnPeopleHelpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPeopleHelpActionPerformed
         btnPeopleHelp.setEnabled(false);
-        List<Integer> activAnswers = new ArrayList<Integer>();
-        for(JButton btn: answerBtns){
-            if (btn.isEnabled()){
-                activAnswers.add(Integer.valueOf(btn.getActionCommand()) - 1);
-            }
-        }
+        List<Integer> activAnswers = GetActivAnswers();
         Integer[] voteResult = GetVoteResult(activAnswers);
         for(JButton btn: answerBtns){
             Integer i = Integer.valueOf(btn.getActionCommand()) - 1;
@@ -365,8 +365,51 @@ public class GameFrame extends javax.swing.JFrame {
         frFrame.setVisible(true);
     }//GEN-LAST:event_btnAddFriendActionPerformed
 
+    private void btnCallFriendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCallFriendActionPerformed
+        String name = tfName.getText();
+        if (IsEmptyString(name)){
+            name = JOptionPane.showInputDialog(this,"Для поиска друзей введите Ваше имя");
+            tfName.setText(name);
+        }
+        if (IsEmptyString(name)) return;
+        Object[][] friends = dbAdapter.GetFriends(name);
+        if (friends.length == 0){
+            name = JOptionPane.showInputDialog(this,"К сожалению Вы не зарегистрировали ни одного друга");
+            return;
+        }
+        CheckCheetCount();
+        btnCallFriend.setEnabled(false);
+        String answer = "";
+        List<Integer> activAnswers = GetActivAnswers();
+        Integer[] voteResult = GetVoteResult(activAnswers);
+        int max = 0;
+        for(JButton btn: answerBtns){
+            Integer i = Integer.valueOf(btn.getActionCommand()) - 1;
+            if(voteResult[i] >= max){
+                max = voteResult[i];
+                answer = btn.getText();
+            }
+        }
+        CallFriendFrame frFrame = new CallFriendFrame(friends, answer);
+        frFrame.setVisible(true);
+    }//GEN-LAST:event_btnCallFriendActionPerformed
+
     private void CheckCheetCount(){
         if(++cheetCount == 4) setEnableCheetBtns(false);
+    }
+    
+    private List<Integer> GetActivAnswers(){
+        List<Integer> activAnswers = new ArrayList<Integer>();
+        for(JButton btn: answerBtns){
+            if (btn.isEnabled()){
+                activAnswers.add(Integer.valueOf(btn.getActionCommand()) - 1);
+            }
+        }
+        return activAnswers;
+    }
+    
+    private String GetFriendAnswer(){
+    
     }
     
     private Integer[] GetVoteResult(List<Integer> activAnswers){
@@ -437,6 +480,7 @@ public class GameFrame extends javax.swing.JFrame {
     private void NextStep(){
         for(JButton btn: answerBtns) btn.setEnabled(true);
         Level++;
+        if (Level == 2) btnAddFriend.setEnabled(false);
         currentQuestion = this.dbAdapter.GetQuestionByLevel(Level);
         ShowQuestion(currentQuestion);
         lstLevel.setSelectedIndex(lstLevel.getModel().getSize()-Level);
@@ -508,12 +552,12 @@ public class GameFrame extends javax.swing.JFrame {
     private javax.swing.JButton btnAnswer2;
     private javax.swing.JButton btnAnswer3;
     private javax.swing.JButton btnAnswer4;
+    private javax.swing.JButton btnCallFriend;
     private javax.swing.JButton btnChangeQuestion;
     private javax.swing.JButton btnGetMoney;
     private javax.swing.JButton btnPeopleHelp;
     private javax.swing.JButton btnRightToMistake;
     private javax.swing.JButton btnWinners;
-    private javax.swing.JButton jButton9;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;

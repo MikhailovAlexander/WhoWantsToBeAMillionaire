@@ -174,7 +174,7 @@ public class DbAdapter {
             Class.forName(DbAdapter.driver);
             conn = DriverManager.getConnection(this.dbUrl);
 
-            query = "select * from friend where gamer_id = ?";
+            query = "select friend_name, friend_phone from friend where gamer_id = ?";
             statement = conn.prepareStatement(query);
             statement.setInt(1, gamer_id);
             
