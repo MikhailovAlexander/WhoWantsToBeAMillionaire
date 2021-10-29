@@ -4,7 +4,11 @@
  */
 package com.mycompany.whowantstobeamillionaire;
 
+import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.JOptionPane;
+import javax.swing.Timer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.MaskFormatter;
 
@@ -15,6 +19,8 @@ import javax.swing.text.MaskFormatter;
 public class CallFriendFrame extends javax.swing.JFrame {
     private Object[][] friends;
     private String answer;
+    private int seconds = 30;
+    private Timer timer;
     /**
      * Creates new form FriendsFrame
      */
@@ -22,6 +28,21 @@ public class CallFriendFrame extends javax.swing.JFrame {
         this.friends = friends;
         this.answer = "Я уверен, что правильный ответ: " + answer;
         initComponents();
+        ActionListener taskPerformer = new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                TimerAction();
+            }
+        };
+        timer = new Timer(1000, taskPerformer);
+        timer.start();
+    }
+    
+    public void TimerAction(){
+        if (seconds > 0){
+            lblTimer.setText(String.format("%d", --seconds));
+            if (seconds < 6) lblTimer.setForeground(Color.red);
+        }
+        else this.dispose();
     }
 
     /**
@@ -42,6 +63,7 @@ public class CallFriendFrame extends javax.swing.JFrame {
         btnExit = new javax.swing.JButton();
         tfPhone = new javax.swing.JFormattedTextField();
         jLabel5 = new javax.swing.JLabel();
+        lblTimer = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -116,6 +138,9 @@ public class CallFriendFrame extends javax.swing.JFrame {
                     .addComponent(btnExit)))
         );
 
+        lblTimer.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        lblTimer.setText("jLabel4");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -126,16 +151,19 @@ public class CallFriendFrame extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(jLabel1)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(lblTimer)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jLabel1)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(lblTimer))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 11, Short.MAX_VALUE))
+                .addGap(0, 3, Short.MAX_VALUE))
         );
 
         pack();
@@ -182,6 +210,7 @@ public class CallFriendFrame extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JLabel lblTimer;
     private javax.swing.JTextField tfName;
     private javax.swing.JFormattedTextField tfPhone;
     // End of variables declaration//GEN-END:variables
