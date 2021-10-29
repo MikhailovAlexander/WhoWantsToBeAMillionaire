@@ -130,7 +130,9 @@ public class DbAdapter {
         }
         return gamer_id;
         
-    }public Object[][] GetWinnersList(){
+    }
+    
+    public Object[][] GetWinnersList(){
         List<Object[]> result = new ArrayList<Object[]>();
         Connection conn = null;
         Statement statement = null;
@@ -159,5 +161,63 @@ public class DbAdapter {
         Object[][] arr = new Object[result.size()][];
         arr = result.toArray(arr);
         return arr;
+    }
+    
+    public Object[][] GetFriends(String name){
+        List<Object[]> result = new ArrayList<Object[]>();
+        Connection conn = null;
+        PreparedStatement statement = null;
+        ResultSet resSet = null;
+        String query;
+        int gamer_id = GetGamerId(name);
+        try{
+            Class.forName(DbAdapter.driver);
+            conn = DriverManager.getConnection(this.dbUrl);
+
+            query = "select * from friend where gamer_id = ?";
+            statement = conn.prepareStatement(query);
+            statement.setInt(1, gamer_id);
+            
+            resSet = statement.executeQuery();
+            while (resSet.next()) {
+                result.add(new Object[]{
+                    resSet.getString(1),
+                    resSet.getString(2)});
+            }
+        } catch (Exception ex) {
+            System.out.println(ex.toString());
+        } finally {
+            try { resSet.close(); } catch (Exception e) { /* Ignored */ }
+            try { statement.close(); } catch (Exception e) { /* Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Ignored */ }
+        }
+        Object[][] arr = new Object[result.size()][];
+        arr = result.toArray(arr);
+        return arr;
+    }
+    
+    public void SaveFriend(String name, String friend_name, String phone){
+        Connection conn = null;
+        PreparedStatement statement = null;
+        ResultSet resSet = null;
+        String query;
+        int gamer_id = GetGamerId(name);
+        try{
+            Class.forName(DbAdapter.driver);
+            conn = DriverManager.getConnection(this.dbUrl);
+
+            query = "insert into friend(friend_name, friend_phone, gamer_id) values(?,?,?)";
+            statement = conn.prepareStatement(query);
+            statement.setString(1, friend_name);
+            statement.setString(2, phone);
+            statement.setInt(3, gamer_id);
+            statement.executeUpdate();
+        } catch (Exception ex) {
+            System.out.println(ex.toString());
+        } finally {
+            try { resSet.close(); } catch (Exception e) { /* Ignored */ }
+            try { statement.close(); } catch (Exception e) { /* Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Ignored */ }
+        }
     }
 }
