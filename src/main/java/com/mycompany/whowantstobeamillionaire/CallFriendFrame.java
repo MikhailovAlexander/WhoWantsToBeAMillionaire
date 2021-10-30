@@ -139,7 +139,7 @@ public class CallFriendFrame extends javax.swing.JFrame {
         );
 
         lblTimer.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        lblTimer.setText("jLabel4");
+        lblTimer.setText(" ");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -177,7 +177,7 @@ public class CallFriendFrame extends javax.swing.JFrame {
             return;
         }
         if(SearchFriend(friendName, phone)) {
-            ShowAnswer();
+            JOptionPane.showMessageDialog(this, answer);
             this.dispose();
         }
         else JOptionPane.showMessageDialog(this, "Друг с указанным именем и телефоном не найден!");
@@ -187,10 +187,6 @@ public class CallFriendFrame extends javax.swing.JFrame {
         this.dispose();
     }//GEN-LAST:event_btnExitActionPerformed
 
-    private void ShowAnswer(){
-        JOptionPane.showMessageDialog(this, answer);
-    }
-    
     private boolean IsEmptyString(String string){
         return string == null || string.trim().isEmpty();
     }

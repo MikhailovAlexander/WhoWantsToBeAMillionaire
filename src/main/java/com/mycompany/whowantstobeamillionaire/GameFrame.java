@@ -42,6 +42,11 @@ public class GameFrame extends javax.swing.JFrame {
             btnChangeQuestion, btnRightToMistake, btnCallFriend, btnAddFriend };
     }
 
+    private void setEnableCheetBtns(Boolean value){
+        for(JButton btn: cheetBtns)
+            btn.setEnabled(value);
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -379,21 +384,57 @@ public class GameFrame extends javax.swing.JFrame {
         }
         CheckCheetCount();
         btnCallFriend.setEnabled(false);
-        String answer = "";
-        List<Integer> activAnswers = GetActivAnswers();
-        Integer[] voteResult = GetVoteResult(activAnswers);
-        int max = 0;
-        for(JButton btn: answerBtns){
-            Integer i = Integer.valueOf(btn.getActionCommand()) - 1;
-            if(voteResult[i] >= max){
-                max = voteResult[i];
-                answer = btn.getText();
-            }
-        }
+        String answer = GetFriendAnswer();
         CallFriendFrame frFrame = new CallFriendFrame(friends, answer);
         frFrame.setVisible(true);
     }//GEN-LAST:event_btnCallFriendActionPerformed
 
+    private void startGame() {
+        player.play("file:.\\sounds\\500_question.wav");
+        Level = 0;
+        cheetCount = 0;
+        useRightToMistake = false;
+        NextStep();
+        setEnableCheetBtns(true);
+    }
+    
+    private void finishGame(){
+        player.play("file:.\\sounds\\win.wav");
+        String name = tfName.getText();
+        if (IsEmptyString(name)){
+            name = JOptionPane.showInputDialog(this,"Для записи в кинигу рекордов введите Ваше имя");
+            tfName.setText(name);
+        }
+        if (IsEmptyString(name)){
+            JOptionPane.showMessageDialog(this, String.format(
+                    "Поздравляем! Ваш выигрыш составил %d рублей! Но, к сожалению, рекорд не будет записан",
+                    winAmounts[Level]));
+        }
+        else{
+            dbAdapter.SaveWinner(name, winAmounts[Level]);
+            JOptionPane.showMessageDialog(this, String.format(
+                    "Поздравляем %s! Ваш выигрыш составил %d рублей!", name,
+                    winAmounts[Level]));
+        }
+        startGame();
+    }
+
+    private void NextStep(){
+        for(JButton btn: answerBtns) btn.setEnabled(true);
+        Level++;
+        if (Level == 2) btnAddFriend.setEnabled(false);
+        currentQuestion = this.dbAdapter.GetQuestionByLevel(Level);
+        ShowQuestion(currentQuestion);
+        lstLevel.setSelectedIndex(lstLevel.getModel().getSize()-Level);
+    }
+
+    private void ShowQuestion(Question q){
+        lblQuestionText.setText(q.Text);
+        for(int i = 0;i < 4; i++){
+            answerBtns[i].setText(q.Answers[i]);
+        }
+    }
+    
     private void CheckCheetCount(){
         if(++cheetCount == 4) setEnableCheetBtns(false);
     }
@@ -409,7 +450,18 @@ public class GameFrame extends javax.swing.JFrame {
     }
     
     private String GetFriendAnswer(){
-    
+        String answer = "";
+        List<Integer> activAnswers = GetActivAnswers();
+        Integer[] voteResult = GetVoteResult(activAnswers);
+        int max = 0;
+        for(JButton btn: answerBtns){
+            Integer i = Integer.valueOf(btn.getActionCommand()) - 1;
+            if(voteResult[i] >= max){
+                max = voteResult[i];
+                answer = btn.getText();
+            }
+        }
+        return answer;
     }
     
     private Integer[] GetVoteResult(List<Integer> activAnswers){
@@ -435,6 +487,30 @@ public class GameFrame extends javax.swing.JFrame {
         double power = (double)answerCount/-9;
         return (int)(100 * Math.pow(Level, power));
     }
+
+    private void btnAnswerActionPerformed(java.awt.event.ActionEvent evt) {                                           
+        JButton btn = (JButton)evt.getSource();
+        if (currentQuestion.CheckAnswer(evt.getActionCommand())){
+            useRightToMistake = false;
+            if (Level < 15) NextStep();
+            else finishGame();
+        }
+        else if(useRightToMistake){
+            useRightToMistake = false;
+            btn.setEnabled(false);
+            JOptionPane.showMessageDialog(this, "Неверный ответ! Попробуйте снова");
+        }
+        else{
+            player.play("file:.\\sounds\\lose.wav");
+            JOptionPane.showMessageDialog(this, "Неверный ответ!");
+            startGame();
+        }
+    }
+    
+    private boolean IsEmptyString(String string){
+        return string == null || string.trim().isEmpty();
+    }
+    
     /**
      * @param args the command line arguments
      */
@@ -468,80 +544,6 @@ public class GameFrame extends javax.swing.JFrame {
                 new GameFrame().setVisible(true);
             }
         });
-    }
-
-    private void ShowQuestion(Question q){
-        lblQuestionText.setText(q.Text);
-        for(int i = 0;i < 4; i++){
-            answerBtns[i].setText(q.Answers[i]);
-        }
-    }
-
-    private void NextStep(){
-        for(JButton btn: answerBtns) btn.setEnabled(true);
-        Level++;
-        if (Level == 2) btnAddFriend.setEnabled(false);
-        currentQuestion = this.dbAdapter.GetQuestionByLevel(Level);
-        ShowQuestion(currentQuestion);
-        lstLevel.setSelectedIndex(lstLevel.getModel().getSize()-Level);
-    }
-    
-    private void startGame() {
-        player.play("file:.\\sounds\\500_question.wav");
-        Level = 0;
-        cheetCount = 0;
-        useRightToMistake = false;
-        NextStep();
-        setEnableCheetBtns(true);
-    }
-
-    private void setEnableCheetBtns(Boolean value){
-        for(JButton btn: cheetBtns)
-            btn.setEnabled(value);
-    }
-
-    private void btnAnswerActionPerformed(java.awt.event.ActionEvent evt) {                                           
-        JButton btn = (JButton)evt.getSource();
-        if (currentQuestion.CheckAnswer(evt.getActionCommand())){
-            useRightToMistake = false;
-            if (Level < 15) NextStep();
-            else finishGame();
-        }
-        else if(useRightToMistake){
-            useRightToMistake = false;
-            btn.setEnabled(false);
-            JOptionPane.showMessageDialog(this, "Неверный ответ! Попробуйте снова");
-        }
-        else{
-            player.play("file:.\\sounds\\lose.wav");
-            JOptionPane.showMessageDialog(this, "Неверный ответ!");
-            startGame();
-        }
-    }
-    
-    private void finishGame(){
-        player.play("file:.\\sounds\\win.wav");
-        String name = tfName.getText();
-        if (IsEmptyString(name)){
-            name = JOptionPane.showInputDialog(this,"Для записи в кинигу рекордов введите Ваше имя");
-            tfName.setText(name);
-        }
-        if (IsEmptyString(name)){
-            JOptionPane.showMessageDialog(this, String.format(
-                    "Поздравляем! Ваш выигрыш составил %d рублей! Но, к сожалению, рекорд не будет записан",
-                    winAmounts[Level]));
-        }
-        else{
-            dbAdapter.SaveWinner(name, winAmounts[Level]);
-            JOptionPane.showMessageDialog(this, String.format(
-                    "Поздравляем %s! Ваш выигрыш составил %d рублей!", name,
-                    winAmounts[Level]));
-        }
-        startGame();
-    }
-    
-    private boolean IsEmptyString(String string){
-        return string == null || string.trim().isEmpty();
     }
 
 
